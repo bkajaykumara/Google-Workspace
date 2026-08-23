@@ -47,6 +47,15 @@ Use this guide to study architectural concepts, review terminal commands, analyz
 - **Incident SOP 6**: Inactive User Audit, Leaver OU Migration & License Reclamation (OneLogin + GAM).
 - **SaaS Ecosystem Admin**: WordPress, DocuSign, ClickUp, QuickBase, Jira.
 
+### 🌟 [Master Consolidated Migration Guide: Microsoft 365 to Google Workspace](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/microsoft_365_to_google_workspace_master_migration_guide.md)
+*Unified master reference consolidating Modules 6, 7, and 8, Teams Chat, and Official Google Workspace Migration Knowledge Base (`knowledge.workspace.google.com/admin/migrate/`).*
+- Account Pre-Provisioning Architecture (SCIM, GCDS, GAM CLI, Admin Console CSV).
+- Complete Workload Coverage: Exchange Online, OneDrive for Business, SharePoint Online, Teams Chat.
+- Azure App Registrations & Permissions (`Client ID`, `Client Secret`, `Tenant ID`, `Sharepoint host name`).
+- Folder mapping, Outlook rules translation matrix, Calendar ACL mappings, Microsoft To Do tasks.
+- Single MX Cutover (`1 SMTP.google.com`), SPF/DKIM/DMARC, Delta Syncs, Error Codes, GAM Scripts.
+- 15 Model Answers for Senior Systems Engineer Interviews.
+
 ### 📂 [Module 6: SharePoint Online to Google Drive Migration](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/6_sharepoint_to_google_drive_migration.md)
 *Enterprise-scale SharePoint to Google Workspace migration — architecture, tooling, and 10,000+ item best practices.*
 - Migration Architecture: DMS Flow, OAuth Consent, Microsoft Graph API.
@@ -84,6 +93,9 @@ Use this guide to study architectural concepts, review terminal commands, analyz
 - Production Playbooks: JML Offboarding, Shared Drive Lifecycle, Phishing Email Purge, 2SV Audits.
 - Migration GAM Pipelines: 10,000-user pre-provisioning, post-migration ACL reconciliation.
 - Interview Cheat Sheet: Top 15 Senior Admin GAM One-Liners.
+
+### 📂 [Module 10: Google Workspace Official Migration Knowledge Base & Technical Guide](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/10_google_workspace_official_migration_knowledge_base.md)
+*Consolidated reference guide extracted from official Google Workspace Admin migration documentation — covering Data Import Tool (Default & Advanced for Exchange, Teams, OneDrive, SharePoint, Dropbox), Google Workspace Migrate, GWMME, GWMMO, Azure Entra ID App Registrations, Scan Reports, Error Codes, and Delta Sync workflows.*
 
 ---
 
