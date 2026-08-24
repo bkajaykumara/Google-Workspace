@@ -13,7 +13,7 @@ Use this guide to study architectural concepts, review terminal commands, analyz
 
 ---
 
-### 🌟 [Master Consolidated Migration Guide: Microsoft 365 to Google Workspace](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/microsoft_365_to_google_workspace_master_migration_guide.md)
+### 📂 [Module 1: Google Workspace Engineering Deep Dive](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/1_google_workspace_deep_dive.md)
 *Core tenant architecture, email authentication systems, data security, and data recovery.*
 - Hierarchical OU Design and Policy Inheritance Rules.
 - Mail Flow Infrastructure: SPF, DKIM, DMARC, MTA-STS, and BIMI.

@@ -17,6 +17,11 @@
 9. [Chapter 9: GAM Advanced Command Reference & Interview Cheat Sheet (Module 9)](#9-chapter-9-gam-advanced-command-reference--interview-cheat-sheet-module-9)
 10. [Chapter 10: Official Google Workspace Migration Knowledge Base (Module 10)](#10-chapter-10-official-google-workspace-migration-knowledge-base-module-10)
 11. [Chapter 11: Master Migration Guide & Senior Systems Engineer Interview Mastery](#11-chapter-11-master-migration-guide--senior-systems-engineer-interview-mastery)
+12. [Chapter 12: Professional Google Workspace Administrator Certification & Top 55 Q&A Handbook (Module 11)](#12-chapter-12-professional-google-workspace-administrator-certification--top-55-qa-handbook-module-11)
+13. [Chapter 13: G Suite & Google Workspace Core Operational Interview Handbook (Module 12)](#13-chapter-13-g-suite--google-workspace-core-operational-interview-handbook-module-12)
+14. [Chapter 14: Google Workspace Developer APIs, Python SDKs & Custom Add-ons Handbook (Module 13)](#14-chapter-14-google-workspace-developer-apis-python-sdks--custom-add-ons-handbook-module-13)
+15. [Chapter 15: G Suite & Google Workspace Senior Analyst Hiring, Evaluation & Interview Rubric (Module 14)](#15-chapter-15-g-suite--google-workspace-senior-analyst-hiring-evaluation--interview-rubric-module-14)
+16. [Chapter 16: Google Workspace Master 95 Platform Owner & Lead Administrator Interview Handbook (Module 15)](#16-chapter-16-google-workspace-master-95-platform-owner--lead-administrator-interview-handbook-module-15)
 
 ---
 
