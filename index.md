@@ -8,7 +8,12 @@ Use this guide to study architectural concepts, review terminal commands, analyz
 
 ## Guide Index
 
-### 📂 [Module 1: Google Workspace Engineering Deep Dive](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/1_google_workspace_deep_dive.md)
+### 🏆 [SINGLE COMPLETE MASTER HANDBOOK (ALL MODULES CONSOLIDATED)](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/google_workspace_complete_master_handbook.md)
+*The complete, unabridged, single master reference document consolidating ALL 10 project modules, Level 3 Incident SOPs, IAM Architecture, MDM, Scripting, GAM BNF Syntax, Apps Scripting, PowerShell/Bash scripts, and the complete Microsoft 365 Migration Framework into one authoritative guide.*
+
+---
+
+### 🌟 [Master Consolidated Migration Guide: Microsoft 365 to Google Workspace](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/microsoft_365_to_google_workspace_master_migration_guide.md)
 *Core tenant architecture, email authentication systems, data security, and data recovery.*
 - Hierarchical OU Design and Policy Inheritance Rules.
 - Mail Flow Infrastructure: SPF, DKIM, DMARC, MTA-STS, and BIMI.
@@ -96,6 +101,21 @@ Use this guide to study architectural concepts, review terminal commands, analyz
 
 ### 📂 [Module 10: Google Workspace Official Migration Knowledge Base & Technical Guide](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/10_google_workspace_official_migration_knowledge_base.md)
 *Consolidated reference guide extracted from official Google Workspace Admin migration documentation — covering Data Import Tool (Default & Advanced for Exchange, Teams, OneDrive, SharePoint, Dropbox), Google Workspace Migrate, GWMME, GWMMO, Azure Entra ID App Registrations, Scan Reports, Error Codes, and Delta Sync workflows.*
+
+### 🎓 [Module 11: Professional Google Workspace Administrator Certification & Top 55 Q&A Handbook](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/11_certification_exam_and_interview_qa.md)
+*Comprehensive handbook for the Professional Google Workspace Administrator Certification exam & technical interviews — featuring exam format ($125 USD, 2 hrs, Kryterion), Admin Console control tower architecture, Top 55 Q&As (Basic, Intermediate, Advanced Scenario, Behavioral), indispensable admin tools matrix, and the official 7-step preparation strategy.*
+
+### 📂 [Module 12: G Suite & Google Workspace Core Operational Interview Handbook](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/12_gsuite_and_workspace_core_interview_handbook.md)
+*Operational interview guide covering core G Suite/Workspace architecture, Google Workspace vs. Microsoft 365 comparison, email migration workflows, user provisioning, Apps Script automation, Google Sheets advantages & conditional formatting, email aliases, Google Groups collaborative inboxes, third-party app governance, and service troubleshooting.*
+
+### 💻 [Module 13: Google Workspace Developer APIs, Python SDKs & Custom Add-ons Handbook](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/13_google_workspace_developer_apis_and_sdk_handbook.md)
+*Developer reference guide for Google Workspace APIs — featuring complete Python SDK scripts for Drive file upload & Calendar event scheduling (with Google Meet link generation), OAuth 2.0 web application authentication architecture flow, custom Workspace add-on lifecycle (`appsscript.json`), Reports API audit querying, and SAML 2.0 SSO setup.*
+
+### 📋 [Module 14: G Suite & Google Workspace Senior Analyst Hiring, Evaluation & Interview Rubric](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/14_gsuite_analyst_hiring_and_evaluation_handbook.md)
+*Hiring manager and assessor framework — featuring 10 scenario interview questions with strong answer criteria & red flags, 4-category weighted evaluation rubric (Technical 35%, Security 30%, Automation 20%, Communication 15%), senior vs. mid-level differentiation matrix, core enterprise technology benchmarks, and hiring FAQs.*
+
+### 🏆 [Module 15: Google Workspace Master 95 Platform Owner & Lead Administrator Interview Handbook](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/15_google_workspace_master_95_interview_questions_handbook.md)
+*Masterclass containing 95 scenario-driven platform owner questions and model answers across 13 operational domains — Identity & Access, User Lifecycle, Mail Flow, Drive Governance, Calendar/Meet/Groups, Licensing/Storage, Device MDM, Reporting, Incidents, Automation, Governance, Leadership, and Behavioural.*
 
 ---
 
