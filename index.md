@@ -117,6 +117,9 @@ Use this guide to study architectural concepts, review terminal commands, analyz
 ### 🏆 [Module 15: Google Workspace Master 95 Platform Owner & Lead Administrator Interview Handbook](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/15_google_workspace_master_95_interview_questions_handbook.md)
 *Masterclass containing 95 scenario-driven platform owner questions and model answers across 13 operational domains — Identity & Access, User Lifecycle, Mail Flow, Drive Governance, Calendar/Meet/Groups, Licensing/Storage, Device MDM, Reporting, Incidents, Automation, Governance, Leadership, and Behavioural.*
 
+### ⚡ [Module 16: Google Workspace Data Import Tool — Default vs. Advanced Data Migration Definitive Guide](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/16_data_import_tool_default_vs_advanced_migration_guide.md)
+*Definitive comparative technical guide for Google Workspace native Data Import Tool — explicitly contrasting Default Data Import (Shared API quota, max 1,000 users) vs. Advanced Data Import (Dedicated Azure App quota, up to 50,000 users) across all workloads: Exchange Online, In-Place Archives, M365 Group Mailboxes, Contacts, Calendars, To Do Tasks, OneDrive for Business, SharePoint Shared Drives, Teams Chat Spaces, and Dropbox/Box storage.*
+
 ---
 
 ## Core Competency Checklist

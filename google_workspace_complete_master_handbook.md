@@ -22,6 +22,7 @@
 14. [Chapter 14: Google Workspace Developer APIs, Python SDKs & Custom Add-ons Handbook (Module 13)](#14-chapter-14-google-workspace-developer-apis-python-sdks--custom-add-ons-handbook-module-13)
 15. [Chapter 15: G Suite & Google Workspace Senior Analyst Hiring, Evaluation & Interview Rubric (Module 14)](#15-chapter-15-g-suite--google-workspace-senior-analyst-hiring-evaluation--interview-rubric-module-14)
 16. [Chapter 16: Google Workspace Master 95 Platform Owner & Lead Administrator Interview Handbook (Module 15)](#16-chapter-16-google-workspace-master-95-platform-owner--lead-administrator-interview-handbook-module-15)
+17. [Chapter 17: Google Workspace Data Import Tool — Default vs. Advanced Data Migration Definitive Guide (Module 16)](#17-chapter-17-google-workspace-data-import-tool--default-vs-advanced-data-migration-definitive-guide-module-16)
 
 ---
 
@@ -1691,7 +1692,89 @@ graph TD
 * **Idempotent Automation**: Script re-runs produce identical results; pre-execution checks, dry-run modes, exponential backoff retries.
 
 ---
-*Reference: Official Google Workspace Senior Systems Engineer & Administrator Complete Master Handbook.*
+
+## 17. Chapter 17: Google Workspace Data Import Tool — Default vs. Advanced Data Migration Definitive Guide (Module 16)
+
+### 1. Architectural Overview & High-Level Comparison
+Google Workspace provides a cloud-native **Data Import Tool** in the Admin Console (`Data > Data import & export > Data import`). Administrators select between **Default Data Import** (shared Google multi-tenant API quota, max 1,000 users/batch, basic Global Admin sign-in) and **Advanced Data Import** (dedicated Azure App Registration quota, up to 5,000 users/batch across 10 concurrent batches = 50,000 users total).
+
+```mermaid
+graph TD
+    Sub["Migration Source<br>(Microsoft 365 / Third-Party)"] --> ModeChoice{"Select Data Import Mode"}
+    
+    ModeChoice -->|"Default Method<br>(Shared API Quota)"| DefaultMethod["Default Data Import<br>- Multi-tenant shared quota<br>- Max 1,000 users/batch<br>- Basic Global Admin Auth<br>- Standard Workloads Only"]
+    
+    ModeChoice -->|"Advanced Method<br>(Dedicated Azure App Quota)"| AdvancedMethod["Advanced Data Import<br>- Dedicated Azure App Tenant Quota<br>- Up to 5,000 users/batch (10 batches)<br>- OAuth 2.0 Client Credentials<br>- Full Enterprise Workload & Archival Scope"]
+    
+    DefaultMethod --> WorkspaceDefault["Google Workspace Target<br>(Basic Mail, Drive, Contacts)"]
+    AdvancedMethod --> WorkspaceAdvanced["Google Workspace Target<br>(Shared Drives, In-Place Archives, Teams Chat, Tasks)"]
+```
+
+---
+
+### 2. Workload-by-Workload Migration Capability Matrix
+
+| Workload Category | Default Data Import Capabilities | Advanced Data Import Capabilities |
+| :--- | :--- | :--- |
+| **Exchange Primary Email** | Migrates core inbox & folders (converts `A/B` to `A_B`). Max 1,000 users. | Migrates core inbox & folders; preserves label hierarchy; supports 50,000 users. |
+| **In-Place Archives** | ❌ **Not Supported**. Archives dropped. | ✅ **Supported**. Routes archives to Google Vault or custom `In-Place Archive` labels. |
+| **M365 Group Mailboxes** | ❌ **Not Supported**. Group mail skipped. | ✅ **Supported**. Migrates group mail to Google Groups or target Shared Mailboxes. |
+| **Outlook Rules & Filter** | ❌ **Not Supported**. | ✅ **Supported**. Translates server-side Outlook rules to native Gmail XML filters. |
+| **Attachment Size Cap** | 35 MB max attachment cap. | ✅ **150 MB max attachment cap** (large files stored in Drive folder `Imported Calendar Attachments`). |
+| **Calendars & Resource Rooms**| Primary personal calendar only. | ✅ Primary/Secondary calendars, Room Resources, ACL mappings, recurring end dates to Dec 31, 2099. |
+| **Contacts & Tasks** | Up to 5,000 contacts; flattens contact folders; tasks dropped. | ✅ Up to 27,000 contacts; preserves contact sub-folders; migrates Microsoft To Do to **Google Tasks**. |
+| **OneDrive for Business** | Files to personal My Drive; auto-maps unmapped accounts. | ✅ Files to My Drive; Admin policy toggle to **Disable unmapped account auto-mapping** (prevents leaks). |
+| **SharePoint Team Sites** | Copies site files into user personal My Drives. | ✅ **Shared Drive Target**. Site Mapping CSV (`Site URL -> Shared Drive ID -> Manager Email`), role translations. |
+| **Microsoft Teams Chat** | ❌ Excluded / Basic 1:1 text only. | ✅ **Full Workload Support**. 1:1 DMs, Group Chats, Public/Private Channel messages to **Google Chat Spaces**. |
+| **Third-Party Storage** | Basic Dropbox/Box file copy. | ✅ Maps Dropbox Team Folders and Box collaborators directly to **Google Shared Drives**. |
+
+---
+
+### 3. Azure App Registration & Permission Walkthrough
+
+Advanced Data Import requires creating an OAuth 2.0 Application in Microsoft Entra ID (`entra.microsoft.com`) with dedicated Graph API Application permissions:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Workspace Administrator
+    participant Entra as Microsoft Entra ID (Azure)
+    participant Import as Google Data Import Tool
+
+    Admin->>Entra: Register Application ("Google Workspace Advanced Data Import")
+    Admin->>Entra: Add Microsoft Graph API Application Permissions
+    Admin->>Entra: Click "Grant Admin Consent for Tenant"
+    Admin->>Entra: Generate Client Secret (Copy Value)
+    Admin->>Import: Input Client ID, Client Secret, Tenant ID, SharePoint Hostname
+    Import->>Entra: Authenticate via OAuth 2.0 Client Credentials Grant
+    Entra->>Import: Return Bearer Access Token (Dedicated Tenant Quota)
+```
+
+* **Required Application Permissions**: `Sites.FullControl.All`, `Files.ReadWrite.All`, `User.Read.All`, `Group.Read.All`, `Mail.Read`, `Calendars.Read`, `Contacts.Read`, `Chat.Read.All`, `ChannelMessage.Read.All`.
+
+---
+
+### 4. Admin Console Setup & Error Diagnostics
+
+1. Navigate to **Admin Console > Data > Data import & export > Data import**.
+2. Select Source and choose **Advanced Data Import**.
+3. Input `Tenant ID`, `Client ID`, `Client Secret`, and `SharePoint Host Name`.
+4. Upload User List CSV, Site Mapping CSV, and Identity Mapping CSV.
+5. Set date range filters, file size limits, and set `Copy unmapped accounts` to **Disabled**.
+6. Run primary import pass $\rightarrow$ execute **Delta Import** 48 hours post-MX cutover.
+
+#### Error Code Diagnostic Matrix
+
+| Error Status | Diagnostic Cause | Actionable Resolution Protocol |
+| :--- | :--- | :--- |
+| `HTTP 429` | Microsoft Graph API rate-limiting throttling. | Built-in exponential backoff retries automatically; stagger execution batches. |
+| `401 Unauthorized` | Invalid or expired Azure Client Secret. | Generate new Client Secret in Azure Entra ID and update Admin Console settings. |
+| `403 Forbidden` | Missing tenant-wide admin consent for Graph permissions. | In Azure Entra ID > App Registrations > API Permissions, click **Grant admin consent**. |
+| `400,000 Item Limit` | Target Google Shared Drive exceeds item cap. | Split SharePoint Document Library across multiple target Shared Drives in Site Mapping CSV. |
+
+---
+*Reference: Official Google Workspace Data Import Tool Technical Documentation (`knowledge.workspace.google.com/admin/migrate/`).*
+
 
 
 
