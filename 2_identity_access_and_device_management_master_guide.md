@@ -164,9 +164,85 @@ inIpRange(origin.ip, ["203.0.113.0/24", "198.51.100.12/32"])
 
 ---
 
+---
+
+## 🚀 8. Enterprise IdP Migration Playbook: OneLogin $\rightarrow$ Microsoft Entra ID + PingID MFA
+
+In modern enterprise evolution, organizations often migrate their Identity Provider tier from **OneLogin** to **Microsoft Entra ID (Azure AD)** as the primary IdP and Provisioning engine, paired with **PingID** for Multi-Factor Authentication (MFA).
+
+```mermaid
+graph TD
+    subgraph Current Architecture
+        User1[User Browser] --> OneLogin[OneLogin IdP + MFA]
+        OneLogin -->|SAML 2.0| GW1[Google Workspace]
+        OneLogin -->|OAuth 2.0 / SCIM| GW1
+    end
+    
+    subgraph Future Target Architecture
+        User2[User Browser] --> EntraID[Microsoft Entra ID Primary IdP]
+        EntraID -->|Conditional Access Step-up| PingID[PingID MFA Engine]
+        PingID -->|MFA Verified| EntraID
+        EntraID -->|SAML 2.0 Assertion| GW2[Google Workspace]
+        EntraID -->|Enterprise App SCIM Provisioning| GW2
+    end
+```
+
+### Architectural Component Mapping
+
+| Functional Layer | Current State (Legacy) | Future Target State | Integration Mechanics |
+| :--- | :--- | :--- | :--- |
+| **Primary Identity Provider** | OneLogin | **Microsoft Entra ID** | User directory, authentication engine, & SAML issuer. |
+| **Multi-Factor Auth (MFA)** | OneLogin Protect | **PingID MFA** | Entra ID Conditional Access Custom Auth / PingID Adapter. |
+| **SSO Federation Protocol** | SAML 2.0 (OneLogin) | **SAML 2.0 (Entra ID)** | Entra ID Enterprise App ("Google Cloud / Workspace"). |
+| **User Lifecycle (SCIM)** | OneLogin API Engine | **Entra ID Provisioning** | Entra ID Enterprise App Automatic User Provisioning. |
+| **Target Service Provider** | Google Workspace | **Google Workspace** | Single domain target for Gmail, Drive, Calendar, Docs. |
+
+---
+
+### Step-by-Step Zero-Downtime Migration Architecture
+
+#### Phase 1: Entra ID Enterprise App & PingID MFA Integration
+1.  **Register Entra ID Enterprise Application**: Add the official **Google Cloud / Google Workspace Connector** from the Entra ID Application Gallery.
+2.  **Configure PingID MFA**:
+    *   Integrate PingID into Entra ID via **Conditional Access Policies** requiring external MFA / Custom Authentication Factors.
+    *   *User Flow*: User accesses `mail.google.com` $\rightarrow$ redirected to Entra ID login $\rightarrow$ Entra ID triggers PingID push notification/OTP $\rightarrow$ upon approval, Entra ID issues signed SAML assertion.
+
+#### Phase 2: User Provisioning Transition (SCIM Engine Handoff)
+1.  **Map Directory Attributes in Entra ID**:
+    *   `userPrincipalName` / `mail` $\rightarrow$ `primaryEmail`
+    *   `givenName` $\rightarrow$ `name.givenName`
+    *   `surname` $\rightarrow$ `name.familyName`
+    *   `department` $\rightarrow$ `organizations.department`
+2.  **Disable OneLogin Provisioning Engine**: Pause OneLogin automatic SCIM sync jobs to prevent conflicting write operations.
+3.  **Enable Entra ID Provisioning**: Configure Entra ID Enterprise App provisioning using an Admin SDK OAuth 2.0 Service Account token. Run an **Initial On-Demand Sync Test** to verify zero 409 conflict errors.
+
+#### Phase 3: Zero-Downtime SSO Cutover using Google Workspace Partial SSO
+*   **Crucial Feature**: Google Workspace supports **Partial SSO (SSO Profiles by Organizational Unit or Group)**. You do NOT need to execute a high-risk "Big Bang" cutover for the entire domain.
+
+```mermaid
+graph LR
+    subgraph Phased Cutover Strategy
+        RootOU["/ (Root OU: Default OneLogin SSO Profile)"]
+        TestOU["/IT-Pilots (Assigned Entra ID SSO Profile)"]
+        Phase2OU["/Sales-Wave1 (Assigned Entra ID SSO Profile)"]
+        FinalPhase["Root OU reassigned to Entra ID Profile"]
+    end
+    
+    RootOU --> TestOU --> Phase2OU --> FinalPhase
+```
+
+1.  **Create Entra ID SSO Profile**: In Google Admin Console (`Security > Authentication > SSO with third-party IdP`), create a secondary Third-Party SSO Profile for **Microsoft Entra ID** (`https://login.microsoftonline.com/<TenantID>/saml2`).
+2.  **Assign Profile to Pilot OU**: Assign the Entra ID SSO Profile specifically to `/IT-Pilots` or a designated test group. Users in `/IT-Pilots` now authenticate via Entra ID + PingID, while all other employees continue using OneLogin.
+3.  **Execute Wave-Based Cutover**: Migrate OUs wave-by-wave (`/Sales`, `/Engineering`, `/Marketing`) to the Entra ID SSO profile.
+4.  **Re-assign Root OU & Decommission**: Once all OUs are verified, assign the Entra ID SSO Profile to the Root OU and decommission the OneLogin SSO profile.
+
+---
+
 ## 🔗 Official Google Support References
 - [Set up SSO via SAML for Google Workspace](https://support.google.com/a/answer/60224)
 - [Manage SAML Certificates](https://support.google.com/a/answer/6245100)
+- [Assign SSO Profiles to Organizational Units or Groups (Partial SSO)](https://support.google.com/a/answer/12035882)
 - [Set up Context-Aware Access](https://support.google.com/a/answer/9368756)
 - [Google Identity Platform OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)
 - [Google OpenID Connect Documentation](https://developers.google.com/identity/openid-connect/openid-connect)
+
