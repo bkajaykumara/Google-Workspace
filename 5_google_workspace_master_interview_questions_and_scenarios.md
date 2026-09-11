@@ -8,17 +8,54 @@ This master handbook provides exhaustive, senior-systems-engineer level answers,
 
 ### Q1: A user complains they are not receiving emails from a specific external domain. How do you investigate and fix it?
 **Detailed Technical Answer:**
-1. **Email Log Search (ELS) Investigation**: Navigate to **Admin Console $\rightarrow$ Reporting $\rightarrow$ Email Log Search**. Enter the recipient email, sender domain (or sender IP), and date range (up to 30 days). Inspect the message trajectory status:
-   * **Delivered**: Check the recipient's Gmail inbox filters, "All Mail", Spam, or Trash. The user may have a custom filter archiving or deleting matching emails.
-   * **Quarantined**: The email triggered a Content Compliance, Attachment Compliance, or Anti-Spam rule. Go to **Admin Console $\rightarrow$ Apps $\rightarrow$ Google Workspace $\rightarrow$ Gmail $\rightarrow$ Admin Quarantine** to review headers, body content, and release or drop the message.
-   * **Bounced**: Click the log entry to read the exact SMTP bounce error code (e.g., `550 5.7.1 Access Denied`, `550 5.7.26 DMARC Failure`).
-   * **Not Received / No Message Found**: The message never reached Google's perimeter MX servers (`1 SMTP.GOOGLE.COM`).
-2. **Perimeter & DNS Diagnostics**: Run `dig MX recipientdomain.com` to confirm MX records point to Google. Execute `dig TXT senderdomain.com` to inspect the sender's SPF record. If the sender's SPF fails or lacks DMARC alignment, Google's receiving gateway may defer or drop the connection.
-3. **Whitelist & Gateway Adjustment**: If the sender domain is legitimate but failing reputation checks, navigate to **Gmail $\rightarrow$ Spam, Phishing, and Malware $\rightarrow$ Email whitelist** (add sender IP) or **Inbound Gateway** (if routing through an external spam filter like Proofpoint/Mimecast).
+I approach email delivery issues using a systematic 5-phase framework: **Information Gathering $\rightarrow$ Log Trajectory Search $\rightarrow$ Policy & Authentication Audit $\rightarrow$ Target Remediation $\rightarrow$ Verification & Prevention**. This applies to both inbound non-receipt and outbound delivery failures.
 
-**Follow-up Question & Answer:**
-* **Interviewer Follow-up Question**: *"What if the external sender claims their server received an HTTP/SMTP 421 deferral error code from Google when sending to your domain?"*
+#### Phase 1: Information Intake & Scope Triage
+1. **Identify Identifiers**: Obtain exact recipient email, external sender email/domain, and approximate timestamp of missing emails.
+2. **Scope Triage**: Determine if the issue is isolated to a single user or affects multiple users across the organization.
+3. **Bounce Report Check**: Ask if the external sender received a Non-Delivery Report (NDR) with specific SMTP error codes (e.g., `550 5.7.1 Access Denied`, `550 5.7.26 DMARC Failure`, `421 4.7.0 Rate Limited`).
+
+#### Phase 2: Email Log Search (ELS) Trajectory Analysis
+Navigate to **Admin Console $\rightarrow$ Reports $\rightarrow$ Audit and investigation $\rightarrow$ Email Log Search**. Filter by recipient email, sender domain/email, and date range (up to 30 days). Inspect the message trajectory status:
+* **Delivered**: Google's gateway successfully delivered the email to the user's account.
+  * *Action*: Check the user's **Spam**, **Trash**, or **All Mail** folders. Verify if user-configured Gmail filters are automatically archiving/deleting messages or if a third-party POP/IMAP client deleted the mail upon sync.
+* **Quarantined**: Intercepted by Admin Quarantine due to Content Compliance, Attachment Compliance, or Anti-Spam policy match.
+  * *Action*: Navigate to **Admin Console $\rightarrow$ Apps $\rightarrow$ Google Workspace $\rightarrow$ Gmail $\rightarrow$ Admin Quarantine** (or **Security $\rightarrow$ Investigation Tool**) to inspect headers, view trigger rules, and click **Release** or **Drop**.
+* **Rejected / Hard Bounce**: Google rejected the message during the SMTP transaction (e.g., `550 5.7.26` DMARC policy failure, SPF authentication rejection, or domain/IP blocklist match).
+* **Soft Bounce / Deferral**: Connection temporarily deferred (e.g., `421 4.7.0` rate limiting due to sender IP reputation warm-up issues).
+* **No Results Found**: Message never reached Google's perimeter MX servers (`aspmx.l.google.com`).
+  * *Action*: Upstream sender issue, outbound queue delay on sender side, or external DNS routing failure. Run `dig MX recipientdomain.com` to confirm recipient MX points to Google servers.
+
+#### Phase 3: Email Authentication & Policy Audit
+1. **Header & Authentication Analysis**: Obtain raw headers (if available) or view ELS message details. Use **Google Admin Toolbox (Message Header Analyzer)** and run `dig TXT senderdomain.com`:
+   * **SPF**: Verify if sender's sending server IP is authorized in their `v=spf1` record.
+   * **DKIM**: Confirm valid cryptographic signature matching the sender domain.
+   * **DMARC**: If sender has `v=DMARC1; p=reject;` published and both SPF and DKIM fail alignment, Google is obligated by RFC standards to reject the email.
+2. **Admin Console Policy Audit**:
+   * **Spam & Allowlist**: Navigate to **Apps $\rightarrow$ Google Workspace $\rightarrow$ Gmail $\rightarrow$ Spam, Phishing, and Malware**. Verify sender domain isn't in an organizational blocklist. Check **Email Whitelist** (add sender IP if legitimate).
+   * **Compliance Rules**: Check **Content Compliance**, **Attachment Compliance**, and **Objectionable Content** rules for aggressive regex or file extension blocks.
+   * **Routing Rules**: Inspect **Inbound Routing** and **Default Routing** rules for misconfigured catch-all or drop actions.
+
+#### Phase 4: Outbound Troubleshooting Framework (When a User Cannot Send to an External Domain)
+When investigating outbound sending failures to an external domain:
+1. **Check Sending Limits**: Navigate to **Audit and investigation $\rightarrow$ Email Log Search**, filter by sender today, and count messages. Personal/Business Starter accounts have a 500 emails/day limit via SMTP/web; Business Plus/Enterprise have a 2,000 emails/day limit. Over-limit users receive *"You have reached a limit for sending mail"* and are throttled for 24 hours.
+2. **Account Status & Compromise**: Check **Directory $\rightarrow$ Users $\rightarrow$ [User]** for account suspension status. Inspect **Security $\rightarrow$ Dashboard** for compromised account alerts.
+3. **Outbound Authentication Verification**: Ensure your domain's SPF record contains `v=spf1 include:_spf.google.com ~all`, DKIM is enabled in **Apps $\rightarrow$ Gmail $\rightarrow$ Authenticate email**, and a DMARC policy (`v=DMARC1; p=quarantine;`) is published.
+4. **Domain & IP Reputation**: Use **Google Postmaster Tools** (`postmaster.google.com`) and **MXToolbox Blacklist Check** to confirm domain/IP sending reputation is high and not listed on Spamhaus or Barracuda blocklists.
+5. **Outbound Compliance & Content Rules**: Verify outbound attachment size doesn't exceed 25MB (use Google Drive links instead) and does not contain prohibited executable binaries (`.exe`, `.bat`, `.cmd`, `.zip` with nested executables).
+
+#### Phase 5: Verification, Testing & Resolution
+1. **Remediation**: Release quarantined messages, update compliance rules with specific OU/Group exceptions, or assist external sender's IT team in fixing SPF/DKIM DNS records.
+2. **Testing**: Have the sender send a plain text test email, followed by a test email with attachments.
+3. **Log Confirmation**: Monitor **Email Log Search** for a `250 2.0.0 OK` successful delivery response code.
+
+**Follow-up Questions & Answers:**
+
+* **Interviewer Follow-up Question 1**: *"What if the external sender claims their server received an HTTP/SMTP 421 deferral error code from Google when sending to your domain?"*
 * **Senior Engineer Answer**: An SMTP 421 response code (`421 4.7.0 Try again later`) indicates Google is rate-limiting or temporarily deferring the connection because the sending IP address or domain lacks established reputation, spiked sending volume unexpectedly, or triggered rate limit thresholds. To resolve this: 1. Confirm the sender isn't listed on global blocklists (Spamhaus/Abuseat), 2. Instruct the sender to publish valid SPF and DKIM records, 3. If using an authorized third-party gateway, ensure their egress IPs are listed under **Gmail $\rightarrow$ Inbound Gateway** with **Require TLS** enabled so Google bypasses aggressive IP rate-limiting.
+
+* **Interviewer Follow-up Question 2**: *"How do you troubleshoot if a user cannot send emails to a specific external domain, and their messages are bouncing with `550 5.7.1 Relay Access Denied` or landing in the recipient's spam folder?"*
+* **Senior Engineer Answer**: 1. Inspect the bounce NDR in **Email Log Search** to capture the remote MTA's response code. `550 5.7.1` usually indicates the recipient's mail gateway (e.g., Microsoft 365 or Proofpoint) rejected the connection due to missing/failing outbound authentication (SPF/DKIM/DMARC) or our domain IP being flagged on an external blacklist. 2. Verify outbound DKIM signing is active in **Apps $\rightarrow$ Gmail $\rightarrow$ Authenticate email** and SPF includes `_spf.google.com`. 3. Check Google Postmaster Tools for spam rate spikes (>0.3%). 4. If authentication passes, contact the external recipient's IT administration to request IP/Domain allowlisting or review their inbound perimeter ATP policy.
 
 ---
 
@@ -227,14 +264,25 @@ This master handbook provides exhaustive, senior-systems-engineer level answers,
 
 ### Q16: A user has enabled auto-forwarding of all emails to a personal Gmail account. How do you detect and disable this?
 **Detailed Technical Answer:**
-1. **Audit & Detect**: Check Admin Audit Log for event `Email forwarding address added`, or run GAM:
-   ```bash
-   gam all users print forwarding > forwarding_audit.csv
-   ```
+1. **Audit & Detect via GAM**:
+   * **GAM 7 Standard (Prints users with configured forwarding addresses)**:
+     ```bash
+     gam all users print forwardingaddress > forwarding_audit.csv
+     ```
+   * **Clean Terminal Output (Suppressing stderr logs and CSV header)**:
+     ```bash
+     gam all users print forwardingaddress 2>/dev/null | grep -v "^User,"
+     ```
+     *(Note: `2>/dev/null` suppresses GAM progress logs on stderr; `grep -v "^User,"` filters out the CSV header row).*
+   * **GAM Forwarding Status Audit (Shows active state: Enabled vs Disabled)**:
+     ```bash
+     gam all users print forwarding > forwarding_status.csv
+     ```
 2. **Disable Tenant-Wide**: Go to **Gmail $\rightarrow$ End User Access $\rightarrow$ Automatic forwarding** $\rightarrow$ Uncheck **Automatic forwarding** (Set to **Disabled**).
 3. **Purge via GAM**:
    ```bash
    gam user alex.smith@company.com delete forwardingaddress personal@gmail.com
+   gam user alex.smith@company.com forwarding off
    ```
 
 **Follow-up Question & Answer:**
@@ -709,11 +757,18 @@ Mailing List (Distribution), Collaborative Inbox (Topic tracking), Web Forum (Di
 
 ### Q53: How do you restore a deleted user and their data? What is the restore time limit?
 **Detailed Technical Answer:**
-Go to **Users $\rightarrow$ Recently deleted $\rightarrow$ Select User $\rightarrow$ Restore**. Time limit: **20 days** post-deletion.
+* **Admin Console**: Go to **Users $\rightarrow$ Recently deleted $\rightarrow$ Select User $\rightarrow$ Restore**. Time limit: **20 days** post-deletion.
+* **GAM Restore Commands**:
+  * **Restore Single User**: `gam undelete user john.doe@company.com`
+  * **Restore to Specific OU**: `gam undelete user john.doe@company.com ou "/Sales/Restored"`
+  * **Bulk Restore from CSV**: `gam csv restore_list.csv gam undelete user ~email`
+* **Check User Deletion Status via GAM**:
+  * Check if user is in deleted status: `gam info user john.doe@company.com showdeleted`
+  * List all deleted users in domain: `gam print users deletedonly`
 
 **Follow-up Question & Answer:**
 * **Interviewer Follow-up Question**: *"What happens if you attempt to restore a deleted user on day 21?"*
-* **Senior Engineer Answer**: On day 21, the user account and associated data (Gmail, Drive files, Calendar events) are permanently purged from Google Workspace storage. Recovery is impossible unless the data was preserved in **Google Vault** prior to account deletion.
+* **Senior Engineer Answer**: On day 21, the user account and **all associated Google Vault data are permanently purged**. Google Vault **does NOT retain data for deleted accounts**. To retain Vault data for offboarded employees, admins must convert the account to an **Archived User (AU)** license or **export Vault data prior to deletion** instead of deleting the account.
 
 ---
 
@@ -1201,3 +1256,61 @@ Present **ELS TLS Logs**, **DKIM Headers**, **MTA-STS Enforcement Logs**, and **
 **Follow-up Question & Answer:**
 * **Interviewer Follow-up Question**: *"What cryptographic hash algorithm does Google Vault export manifest use to verify data integrity?"*
 * **Senior Engineer Answer**: Google Vault exports include an `XML/CSV` manifest containing **SHA-256 cryptographic hashes** for every exported message and attachment file, proving data integrity and chain-of-custody compliance.
+
+---
+
+### Q101: How do you configure SAML 2.0 SSO between Microsoft Entra ID (Azure AD) and Google Workspace, and resolve AADSTS700016 / AADSTS50011 errors?
+**Detailed Technical Answer:**
+1. **Entra ID Setup**: Create Enterprise Application **Google Cloud / G Suite Connector by Microsoft**.
+2. **Entity ID Mapping**: Set Identifier (Entity ID) to Google's unique tenant SAML Profile ID (`https://accounts.google.com/samlrp/<Profile-ID>`).
+3. **ACS URL Mapping**: Set Reply URL (ACS URL) to `https://accounts.google.com/samlrp/<Profile-ID>/acs`.
+4. **Google Workspace Setup**: Go to **Security $\rightarrow$ Authentication $\rightarrow$ SSO with third-party IdP**. Paste Entra Login/Logout URLs and upload Entra Base64 X.509 Certificate.
+5. **Super Admin Safety**: Assign SSO profile to `/Employees` OU, but keep `_Admins` OU set to **None** (Google Password Authentication) to prevent admin lockout during IdP outages.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why does setting Entra ID Entity ID to generic `google.com` cause error `AADSTS700016`?"*
+* **Senior Engineer Answer**: SAML 2.0 enforces strict character-for-character string matching. Google sends its unique tenant relying party ID (`https://accounts.google.com/samlrp/<ID>`) inside the `<saml:Issuer>` XML tag to ensure tenant isolation. If Entra ID has `google.com`, the string comparison fails and Entra rejects the request.
+
+---
+
+### Q102: Why should third-party email security gateways (Proofpoint, Mimecast) be added to 'Inbound Gateway' instead of 'Email Allowlist'?
+**Detailed Technical Answer:**
+* **Email Allowlist (IPs)**: Completely bypasses Gmail's automated AI spam filtering. Adding a gateway IP here causes Gmail to treat all mail passing through the gateway as trusted, allowing external spam into user inboxes.
+* **Inbound Gateway**: Parses the **`X-Forwarded-For`** header to extract the original sender's IP. Preserves full **Gmail AI spam & phishing checks**, evaluates SPF against the original sender IP, and prevents connection rate-limiting (`421 4.7.0`).
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"What does checking 'Reject non-IP gateway messages' do in Inbound Gateway settings?"*
+* **Senior Engineer Answer**: It locks down Google's public MX servers to reject direct incoming SMTP connections from any external IP not listed in your gateway IP ranges, preventing spammers from bypassing your security gateway.
+
+---
+
+### Q103: How do you stream Google Workspace audit logs to Google Cloud BigQuery, and why might 'Failed to save' occur during setup?
+**Detailed Technical Answer:**
+1. Enable **BigQuery API** in a GCP Project with an active **GCP Billing Account**.
+2. Go to **Admin Console $\rightarrow$ Reporting $\rightarrow$ BigQuery export**.
+3. Enter GCP Project ID and Dataset Name, then select datasets (`Admin`, `Login`, `Drive`, `Gmail ELS`, `Token`, `Context-Aware Access`).
+4. Google streams logs into daily partitioned tables (`activity`, `email`).
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why does Admin Console throw 'Failed to save' when configuring BigQuery export?"*
+* **Senior Engineer Answer**: Occurs if the GCP Project is in **BigQuery Sandbox mode** (no billing account linked), if the dataset name already exists, or if the admin lacks `BigQuery Admin` / `Project Owner` IAM permissions on the GCP project.
+
+---
+
+### Q104: Why is 'Advanced Mobile Management' grayed out in Google Admin Console, and how do you resolve it?
+**Detailed Technical Answer:**
+Advanced Mobile Management requires a valid, active **Apple Push Notification Certificate (APNs)** uploaded to Google Workspace so Google can send MDM commands to iOS devices. Without an APNs certificate, global Advanced management is disabled.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"How do you enforce Advanced Management on Android without setting up an Apple Push Certificate?"*
+* **Senior Engineer Answer**: Select **Custom Mobile Management** in **Devices $\rightarrow$ Mobile & endpoints $\rightarrow$ Universal settings**. Set **Android** to **Advanced** and **iOS** to **Basic**.
+
+---
+
+### Q105: What GAM command exports all Google Drive files and folders shared externally outside the domain?
+**Detailed Technical Answer:**
+```bash
+gam all users print filelist pm type external fields id,title,permissions,owners > external_shares_report.csv
+```
+* **`pm type external`**: Filters permission records to only include shares with users or domains outside the organization.
+* **`pm type anyone`**: Filters files shared via public link ("Anyone with the link").
