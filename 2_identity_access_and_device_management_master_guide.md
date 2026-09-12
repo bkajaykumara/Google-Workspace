@@ -245,4 +245,9 @@ graph LR
 - [Set up Context-Aware Access](https://support.google.com/a/answer/9368756)
 - [Google Identity Platform OAuth 2.0](https://developers.google.com/identity/protocols/oauth2)
 - [Google OpenID Connect Documentation](https://developers.google.com/identity/openid-connect/openid-connect)
+ - [Admin SDK Directory API (user & group management)](https://developers.google.com/admin-sdk/directory)
+ - SCIM & provisioning search results: https://support.google.com/a/search?q=SCIM+provisioning+Google+Workspace
+ - Endpoint management (MDM) search results: https://support.google.com/a/search?q=Endpoint+management+Google+Workspace
+ - Context-Aware Access search results: https://support.google.com/a/search?q=Context-Aware+Access+Google+Workspace
+ - SSO / SAML search results: https://support.google.com/a/search?q=Set+up+SSO+SAML
 

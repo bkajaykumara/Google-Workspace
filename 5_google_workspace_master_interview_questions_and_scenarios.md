@@ -1154,6 +1154,180 @@ Chrome Enterprise includes OS management/licensing; CBCM manages cloud browser p
 
 ---
 
+## Device Management Scenario Questions: Basic to Advanced
+
+### S1: A new employee cannot access Gmail on an Android phone after installing the company account. What do you check first?
+**Scenario Answer:**
+Confirm that the user is in the correct organizational unit or group, mobile management is enabled for that scope, and the device has completed enrollment. Check whether the Device Policy app is installed, the user has accepted the management prompt, and the device appears under **Devices > Mobile & endpoints**. Review the device status for a pending sync, policy violation, or blocked state before changing policy.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why should you avoid immediately wiping the device?"*
+* **Senior Engineer Answer**: A wipe can destroy evidence and personal data on a corporate-owned device, while the actual issue may only be incomplete enrollment or an incorrect OU assignment. First separate an enrollment problem from a compliance problem using device inventory and audit data.
+
+* **Interviewer Follow-up Question**: *"What enrollment evidence should you collect before escalating?"*
+* **Senior Engineer Answer**: Collect the user email, device ID, ownership type, operating system, serial number or IMEI, enrollment timestamp, last sync time, policy status, and the exact error shown to the user. This lets the next team reproduce the failure without asking the user to repeat enrollment.
+
+* **Interviewer Follow-up Question**: *"How do you distinguish an account problem from a device problem?"*
+* **Senior Engineer Answer**: Test the account on a known-compliant device and test another authorized account on the affected device. If several users fail on one device, investigate enrollment or platform state; if one user fails across devices, investigate OU assignment, licensing, account status, or authentication.
+
+* **Interviewer Follow-up Question**: *"What is a safe first remediation for a device stuck in pending enrollment?"*
+* **Senior Engineer Answer**: Confirm network connectivity and correct date and time, verify the user is in the intended management scope, force a policy refresh, and reinstall or re-register the management component only if supported. Record the state before removing the device record so that troubleshooting evidence is not lost.
+
+### S2: A user wants to access Gmail from a personal iPhone, but the company must not manage personal photos or applications. What design do you recommend?
+**Scenario Answer:**
+Use BYOD enrollment with account-level management or an approved work-data container, depending on the platform and required controls. Apply a passcode and minimum OS policy to the managed account, and document that an **Account Wipe** removes corporate data only. Do not use full device wipe for a personal device unless policy and user consent explicitly allow it.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"What must be communicated to the user before enrollment?"*
+* **Senior Engineer Answer**: Explain what data the organization can see, which controls it can enforce, what triggers a block or wipe, and the difference between Account Wipe and Wipe Device. Clear privacy communication is part of the technical rollout, not an afterthought.
+
+* **Interviewer Follow-up Question**: *"Which control is most important for protecting corporate data on BYOD?"*
+* **Senior Engineer Answer**: Use strong authentication and isolate or manage the work account so corporate data can be removed independently of personal data. Combine that with minimum OS, screen-lock, and risk-based access requirements rather than relying on the device being personally owned.
+
+* **Interviewer Follow-up Question**: *"How should BYOD exceptions be governed?"*
+* **Senior Engineer Answer**: Put exceptions in a time-bound group or workflow with an owner, business reason, expiration date, and compensating controls. Review the exception report regularly and remove access automatically when the approved period ends.
+
+* **Interviewer Follow-up Question**: *"What evidence proves that an account wipe worked?"*
+* **Senior Engineer Answer**: Confirm the wipe command status in device management, record the completion timestamp and device identifier, and verify that the corporate account or work profile no longer syncs. For high-risk cases, correlate the wipe with Login and token audit events.
+
+### S3: A lost company-owned Android phone is reported while the user is travelling. What is your immediate response?
+**Scenario Answer:**
+Verify the asset and user identity, suspend active access if compromise is suspected, and use **Wipe Device** for a corporate-owned phone when the organization accepts the factory-reset impact. For a BYOD phone, use **Wipe Account** instead. Record the incident, preserve the device identifier and last check-in information, and review Login and Drive audit events for activity after the loss.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"When would you choose Account Wipe on a company-owned device?"*
+* **Senior Engineer Answer**: Choose Account Wipe when the device may be recovered and the goal is to remove corporate data while preserving the local device state. Choose Wipe Device when the device is unrecoverable or the risk of data exposure is higher than the cost of a factory reset.
+
+* **Interviewer Follow-up Question**: *"What should happen to the user's sessions and tokens after the phone is lost?"*
+* **Senior Engineer Answer**: Sign out active sessions and revoke OAuth tokens when compromise is possible, then reset credentials or suspend the account according to the incident severity. A device wipe alone does not prove that already-issued sessions or third-party tokens are no longer active.
+
+* **Interviewer Follow-up Question**: *"How do you validate the correct device before issuing a wipe?"*
+* **Senior Engineer Answer**: Match at least two identifiers, such as the inventory asset tag and serial number or IMEI, against the user's assigned device. Confirm the last check-in and ownership type with the user or asset team before selecting Wipe Device.
+
+* **Interviewer Follow-up Question**: *"What post-incident actions prevent a repeat event?"*
+* **Senior Engineer Answer**: Review the time to report, wipe completion, last successful sync, and access after loss. Improve screen-lock enforcement, user reporting guidance, asset inventory accuracy, and conditional access rules based on the findings.
+
+### S4: Finance users are blocked from Google Drive after a new device compliance policy is enabled, but Gmail still works. How do you troubleshoot it?
+**Scenario Answer:**
+Compare the Finance OU or group with the policy scope, then check the device record for encryption, screen lock, management state, and last synchronization time. Review Context-Aware Access logs to identify the exact failed condition. Test with a known-compliant device and a deliberately non-compliant device, then use monitor mode or a pilot scope before changing the production rule.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"What does the fact that Gmail still works tell you?"*
+* **Senior Engineer Answer**: It suggests the restriction is service-specific rather than a general authentication failure. Gmail may be unassigned from the restrictive CAA level while Drive and Docs are assigned to it, so troubleshoot the Drive policy and not the user's password or SSO first.
+
+* **Interviewer Follow-up Question**: *"What is the best order for troubleshooting the denial?"*
+* **Senior Engineer Answer**: Start with scope, then the user's group or OU, the application assignment, the Access Level expression, the device posture, and finally propagation or caching. This order avoids changing a correct device policy when the real issue is an incorrect target group.
+
+* **Interviewer Follow-up Question**: *"How do you test a CAA change safely?"*
+* **Senior Engineer Answer**: Use a pilot group, monitor mode where available, and a test matrix containing compliant, non-compliant, mobile, browser, VPN, and external-network cases. Capture expected and observed results before enforcing the rule for Finance.
+
+* **Interviewer Follow-up Question**: *"What rollback plan should accompany the change?"*
+* **Senior Engineer Answer**: Keep the previous Access Level configuration documented, define an approved emergency administrator group, and prepare a rapid scope rollback. Roll back the narrowest assignment first and preserve logs so the cause can be corrected rather than hidden.
+
+### S5: An Android user changes their screen lock to an unsupported pattern and loses access to corporate apps. What should support do?
+**Scenario Answer:**
+Confirm the device violation in the Admin Console, explain the required passcode policy, and have the user restore a compliant screen lock. Force a policy sync or wait for the next check-in, then verify that the device returns to compliant status. Do not disable the global requirement for one user; use a documented temporary exception only when business continuity requires it.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"How do you prevent repeated help-desk incidents?"*
+* **Senior Engineer Answer**: Publish the passcode requirements before enrollment, use a pilot OU to expose incompatible settings, and monitor compliance reports for common failure reasons. A short user-facing enrollment guide is usually more effective than weakening the control.
+
+* **Interviewer Follow-up Question**: *"Should support disable the passcode policy for a user who is travelling?"*
+* **Senior Engineer Answer**: No, not as a default response. Confirm the business need, use a time-bound exception only if approved, and apply compensating controls such as stronger authentication and restricted application access.
+
+* **Interviewer Follow-up Question**: *"How can you tell whether the device has received the corrected policy?"*
+* **Senior Engineer Answer**: Check the device's last policy sync, current compliance state, and reported screen-lock configuration. Ask the user to force a management sync when supported, then retest a managed application and record the result.
+
+* **Interviewer Follow-up Question**: *"What is the difference between a policy violation and a synchronization failure?"*
+* **Senior Engineer Answer**: A violation means the device reported a state that does not meet policy. A synchronization failure means the management service cannot reliably receive or apply state, so remediation should focus on connectivity, enrollment, certificates, or the management agent before changing the requirement.
+
+### S6: A contractor's personal laptop can open Gmail and then download sensitive Drive files. The requirement is to allow email but prevent Drive downloads from unmanaged devices. How do you implement it?
+**Scenario Answer:**
+Create a managed-device Access Level using Endpoint Verification or the approved device posture signal, assign it to Drive and Docs for the contractor scope, and leave Gmail unassigned if email access is permitted. Test direct Drive URLs, links opened from Gmail, mobile access, and offline synchronization. Confirm that the rule applies to the contractor's actual OU or group and that browser management state is reported correctly.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why is testing a link from Gmail important?"*
+* **Senior Engineer Answer**: The link still opens the Drive and Docs service, where the Drive CAA policy must be evaluated. Testing only the Gmail landing page could create a false impression that the data restriction works.
+
+* **Interviewer Follow-up Question**: *"How do you prevent browser download or offline-copy bypasses?"*
+* **Senior Engineer Answer**: Apply the appropriate Drive data protection and CAA controls, disable offline access where required, and test download, print, copy, sync-client, and shared-link behavior. Device posture alone may permit viewing while separate Drive controls determine what the user can do with the content.
+
+* **Interviewer Follow-up Question**: *"What should happen if Endpoint Verification is not reporting on the contractor laptop?"*
+* **Senior Engineer Answer**: Treat the posture as unknown rather than compliant, verify the extension and browser enrollment, and inspect the device's last check-in. Keep the restrictive policy in place until the signal is current or provide a documented, time-limited alternative access path.
+
+* **Interviewer Follow-up Question**: *"How would you handle a legitimate contractor using a managed vendor laptop?"*
+* **Senior Engineer Answer**: Establish a vendor trust process that records the device owner, management authority, posture evidence, expiration date, and approved scope. Do not broadly trust the vendor's network; require the same device and identity conditions for the applications being accessed.
+
+### S7: Your organization is moving from basic mobile management to advanced management for 12,000 devices. What rollout plan would you present?
+**Scenario Answer:**
+Inventory device ownership, operating-system versions, enrollment methods, and current policy gaps. Define the target controls, pilot with IT and representative business groups, communicate user actions and privacy impact, and measure enrollment and compliance rates. Roll out in waves with a rollback path, exception process, help-desk runbook, and daily reporting for blocked devices and failed enrollments.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"What is a meaningful go/no-go metric for the next wave?"*
+* **Senior Engineer Answer**: Use more than enrollment count. Require an agreed compliance rate, low unresolved enrollment failure volume, successful wipe tests for each ownership model, and confirmation that critical applications work on both corporate-owned and BYOD devices.
+
+* **Interviewer Follow-up Question**: *"How do you prevent a migration wave from creating a mass outage?"*
+* **Senior Engineer Answer**: Use small cohorts, freeze unrelated policy changes, maintain a wave-level rollback plan, and monitor enrollment, compliance, authentication, and application success rates in real time. Keep a break-glass process and staffed support coverage during each cutover window.
+
+* **Interviewer Follow-up Question**: *"How should corporate-owned and BYOD devices be treated differently during migration?"*
+* **Senior Engineer Answer**: Corporate-owned devices can usually receive stronger controls, full wipe, and required applications. BYOD requires data minimization, account or work-profile wipe, explicit privacy communication, and a policy that does not assume the organization controls the entire device.
+
+* **Interviewer Follow-up Question**: *"What data should be included in the migration dashboard?"*
+* **Senior Engineer Answer**: Track enrolled devices by platform and ownership, compliance percentage, pending enrollments, policy violations, wipe-test results, application failures, help-desk tickets, and exceptions with expiration dates. Show both counts and rates so a large wave does not hide a worsening failure ratio.
+
+### S8: Endpoint Verification reports a laptop as managed, but the device is not encrypted. The CAA rule still grants access. What do you investigate?
+**Scenario Answer:**
+Check whether the CEL rule actually includes encryption status, whether the device record has refreshed after encryption was disabled, and whether the user is accessing through a browser or client path covered by the policy. Validate the signal against the Admin Console device record and audit logs. If the policy requires encryption, update the Access Level to include the correct encryption condition and test in monitor mode before enforcement.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"What is the difference between detecting a state and enforcing a state?"*
+* **Senior Engineer Answer**: Endpoint Verification can report posture signals for evaluation, but it does not by itself encrypt the laptop. Enforcement belongs in the device-management platform, while CAA uses the resulting posture to decide whether access is allowed.
+
+* **Interviewer Follow-up Question**: *"What could cause the device to appear managed even though encryption is disabled?"*
+* **Senior Engineer Answer**: The device record may be stale, the management platform may only be reporting browser management, the CEL rule may omit encryption, or the signal may be unavailable for that access path. Validate each claim against timestamps, policy configuration, and a fresh device check-in.
+
+* **Interviewer Follow-up Question**: *"How do you avoid treating an unknown posture as compliant?"*
+* **Senior Engineer Answer**: Design the Access Level so the required signals must evaluate true, and test missing or stale signals explicitly. A device with no current encryption evidence should fail a policy that requires encryption rather than pass because it is merely enrolled.
+
+* **Interviewer Follow-up Question**: *"Which platform should remediate the encryption failure?"*
+* **Senior Engineer Answer**: The authoritative endpoint-management platform, such as the organization's approved desktop MDM or security tool, should enforce encryption. Google Workspace should consume the posture signal and control access; it should not be treated as a replacement for desktop encryption management.
+
+### S9: A security team wants to block rooted Android devices, unmanaged browsers, and access from high-risk countries without locking out administrators. How would you stage the solution?
+**Scenario Answer:**
+Separate the requirements into device compliance, browser management, and network or geographic context. Build individual Access Levels, exclude tested break-glass accounts, apply them to a pilot group, and use monitor mode to measure legitimate matches. Validate false positives with travelling users, VPN egress addresses, service accounts, and recovery workflows before combining controls for production enforcement.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why should the controls be tested separately first?"*
+* **Senior Engineer Answer**: Separate testing identifies which signal caused a denial and makes rollback predictable. Combining several untested conditions can turn a small device posture issue into a broad access outage that is difficult to diagnose.
+
+* **Interviewer Follow-up Question**: *"How should break-glass administrators be protected from the exception itself?"*
+* **Senior Engineer Answer**: Use dedicated accounts with hardware security keys, strong monitoring, restricted membership, and a documented emergency procedure. Exclude only those accounts that are necessary for recovery, and alert on every use rather than excluding normal administrator accounts broadly.
+
+* **Interviewer Follow-up Question**: *"How do you handle VPN users when applying country restrictions?"*
+* **Senior Engineer Answer**: Identify approved VPN egress ranges, verify their ownership, and decide whether those ranges should satisfy the network condition. Do not use a permanent country exception for individual users; use approved ranges or time-bound, audited exceptions.
+
+* **Interviewer Follow-up Question**: *"What is the safest order for enforcing these three controls?"*
+* **Senior Engineer Answer**: Baseline and monitor each signal, enforce device compromise blocking first for the highest-risk devices, then browser management, and finally geographic conditions after validating travel and VPN behavior. The exact order should follow risk and observed false-positive rates.
+
+### S10: During an incident, an attacker may have accessed Google Workspace from a managed laptop whose management agent was later removed. How do you investigate and contain it?
+**Scenario Answer:**
+Preserve Login, Drive, Admin, Token, and device audit records; identify the device ID, user, IP addresses, browser state, and last compliant check-in. Sign out active sessions, suspend or restrict the account as appropriate, revoke OAuth tokens, and remove the device from trusted access paths. Compare the timeline of device non-compliance with sensitive file access, then re-enroll or retire the asset before restoring access.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"How do you distinguish a stale inventory record from a real compromise?"*
+* **Senior Engineer Answer**: Correlate the device's last check-in and posture timestamps with Login and Drive events, IP and user-agent details, session revocation results, and endpoint security telemetry. A stale record without matching access activity may be an inventory problem; access continuing after the last compliant check-in requires incident containment.
+
+* **Interviewer Follow-up Question**: *"What should be preserved for forensic analysis?"*
+* **Senior Engineer Answer**: Preserve device identifiers, management and posture history, Login and Drive audit events, OAuth token records, IP and user-agent data, Admin changes, endpoint detection evidence, and the incident timeline. Record collection times and access permissions so the evidence remains defensible.
+
+* **Interviewer Follow-up Question**: *"When should the device be re-enrolled instead of trusted again?"*
+* **Senior Engineer Answer**: Re-enroll when the management agent was removed, certificates were altered, controls cannot be verified, or endpoint security reports tampering. Restore access only after the device is clean, policy-compliant, assigned to the correct scope, and the user's sessions and tokens have been reviewed.
+
+* **Interviewer Follow-up Question**: *"How do you confirm containment?"*
+* **Senior Engineer Answer**: Verify session sign-out and token revocation, confirm the device no longer satisfies the trusted-device condition, check that sensitive access has stopped, and monitor for new authentication or file activity. Containment is a tested outcome, not simply the act of clicking Suspend or Wipe.
+
+---
+
 ## 📊 SECTION 7: Reporting, Audit & Compliance (Q91–Q100)
 
 ### Q91: What are the different types of audit logs available in Google Workspace and what does each one track?
