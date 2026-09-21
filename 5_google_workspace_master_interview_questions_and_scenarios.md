@@ -1488,3 +1488,204 @@ gam all users print filelist pm type external fields id,title,permissions,owners
 ```
 * **`pm type external`**: Filters permission records to only include shares with users or domains outside the organization.
 * **`pm type anyone`**: Filters files shared via public link ("Anyone with the link").
+
+---
+
+### Q106: Why is Google Vault NOT a backup or disaster recovery solution, and what is the proper data recovery hierarchy in Google Workspace?
+**Detailed Technical Answer:**
+Google Vault is strictly an **eDiscovery, Legal Hold, and Information Governance tool**, designed to preserve evidence and enforce compliance retention—**not** a backup/recovery solution.
+1. **Export vs. In-Place Restore**: Vault exports matching data out of Workspace into ZIP/MBOX/PST formats. It does not restore files in-place back to Shared Drives/User Drives with original folder hierarchies, file IDs, or permissions.
+2. **No Point-in-Time Snapshots**: Vault retains file versions and deleted objects, but lacks awareness of environment structure at a specific point in time (e.g., "restore Shared Drive X to its state on Tuesday at 9 AM").
+3. **User Action Defenses**: Holds prevent items from being permanently purged from Google servers, but do not prevent users from reorganizing, moving, or unsharing folders.
+
+**Google Workspace Recovery Hierarchy (In Order of Execution):**
+1. **Version History & User Trash**: Recovers overwritten files or recently deleted items within 30 days without admin intervention.
+2. **Admin Data Restore**:
+   - **User Drive**: Admin Console allows restoring deleted files per user within **25 days** of emptying the Trash.
+   - **Shared Drives**: Admin Console allows restoring deleted Shared Drives or contents within **25 days** of deletion.
+3. **Drive Audit Logs & GAM**: Tracks file moves or permission changes to locate "lost" (moved) files rather than performing unnecessary content restores.
+4. **Third-Party Backup Solution** (e.g., Afi.ai, Backupify, Spanning, HYCU): Essential for automated, point-in-time, in-place disaster recovery and granular folder/permission tree restoration.
+5. **Google Vault**: Used as a last resort to manually export raw evidence files when all recovery windows have expired.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"How do you advise leadership when they assume Google Workspace / Vault automatically protects against ransomware or accidental Shared Drive wipeouts?"*
+* **Senior Engineer Answer**: Educate stakeholders on the Shared Responsibility Model. Google guarantees infrastructure availability, but customer data lifecycle management requires either accepting the 25-day native admin restore window/version history limits, or procuring a dedicated 3rd-party SaaS backup engine for automated point-in-time snapshot recovery.
+
+---
+
+### Q107: How do you design an enterprise bulk user offboarding (Leavers) workflow using GCS buckets, GAM, OU isolation, and license reclamation?
+**Detailed Technical Answer:**
+An enterprise bulk offboarding (Leavers) workflow safely revokes access, reclaims expensive licenses, and enforces compliance without losing data:
+
+1. **Data Ingestion & Filtering (GCS Data Pipeline)**:
+   - User telemetry (Address, Last Login date, OneLogin/Okta SSO last login, current OU path) is fetched and staged in a **Google Cloud Storage (GCS) bucket**.
+   - Admins extract and filter the raw CSV to exclude **Service Accounts (`SA`)**, **Test Accounts (`TA`)**, and **Admin Accounts**, retaining target inactive accounts (e.g., last login $> 3$ months).
+
+2. **Quarantine OU Isolation (`_Leavers`)**:
+   - Create a designated Organizational Unit (`_Leavers`).
+   - In Google Admin Console, configure `_Leavers` with **all Google core services turned OFF** (Gmail, Drive, Chat, Calendar disabled) to block user logins while preserving the account object for legal retention.
+
+3. **Automated GAM Batch Execution**:
+   - **Step 1: Move Users to Isolation OU**:
+     ```bash
+     gam csv cleanup.csv gam update user ~email org "_Leavers" > cleanupresults.csv
+     ```
+   - **Step 2: Reclaim Enterprise Plus License** (SKU `1010020020`):
+     ```bash
+     gam csv cleanup.csv gam user ~email delete license "1010020020" > cleanupresults.csv
+     ```
+   - **Step 3: Reclaim Add-on Cloud Search License** (SKU `1010350001`):
+     ```bash
+     gam csv cleanup.csv gam user ~email delete license "1010350001" > cleanupresults.csv
+     ```
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why is moving leavers to `_Leavers` OU and revoking licenses preferred over immediate account deletion?"*
+* **Senior Engineer Answer**: Deleting a user account instantly purges unassigned Drive files and destroys Google Vault Legal Holds tied to that custodian. Moving to `_Leavers` OU disables service access and reclaims high-cost licenses immediately, while keeping data intact for legal/audit retention and enabling a 30-to-90 day buffer for manager data handovers.
+
+---
+
+### Q108: How do you find, audit, and remediate external Google Drive file exposure across a large enterprise domain?
+**Detailed Technical Answer:**
+Auditing and remediating external file exposure (over-sharing) across millions of files in a large domain requires a 4-phase strategy combining native audit tools, GAM CLI scripts, and preventive governance rules.
+
+#### **Phase 1: Discovery & Audit (Finding Exposed Files)**
+1. **Security Investigation Tool (SIT)**:
+   - Navigate to **Admin Console $\rightarrow$ Security $\rightarrow$ Investigation tool**.
+   - Select **Drive log events** $\rightarrow$ Filter by `Visibility = Shared externally` OR `Visibility = Public on the web`.
+2. **Bulk Audit via GAM CLI (Native Drive API Queries)**:
+   - **Audit Public Link Shares (`anyoneWithLink`) & Output to Google Drive**:
+     ```bash
+     gam all users print filelist query "visibility='anyoneWithLink'" allfields todrive
+     ```
+   - **Audit Files Containing Sensitive Project Keywords**:
+     ```bash
+     gam all users show filelist query "fullText contains 'ProjectX'" todrive
+     ```
+   - **Audit External Domain Shares (Outside Primary Domain)**:
+     ```bash
+     gam all users print filelist select pm notdomain primary allfields todrive
+     ```
+   - **Technical Advantages of `query` + `todrive`**:
+     - **`query "visibility='...'"`**: Executes server-side filtering directly via the Google Drive API v3 engine, dramatically speeding up evaluation over millions of files.
+     - **`allfields`**: Captures comprehensive file metadata including ownership, folder paths, sharing permissions, and MIME types.
+     - **`todrive`**: Automatically uploads the resulting audit CSV into the executing admin's Google Drive as a Google Sheet, creating a shareable investigation report instantly.
+
+#### **Phase 2: Risk Categorization & Filtering**
+- Filter CSV reports by risk level:
+  - **Critical**: Public link access (`anyone`) with `editor` or `viewer` rights.
+  - **High**: Sensitive files (PII, source code, financial documents) shared with personal domains (`@gmail.com`, `@yahoo.com`).
+  - **Medium**: Partner domain shares (`@trustedpartner.com`).
+
+#### **Phase 3: Automated Remediation (Fixing Exposed Files)**
+1. **Remove Public Link Access Domain-Wide**:
+   ```bash
+   gam csv public_shares_report.csv gam delete drivefileacl ~id "anyone"
+   ```
+2. **Revoke Specific External User Permissions**:
+   ```bash
+   gam csv external_shares_report.csv gam delete drivefileacl ~id ~permission.id
+   ```
+3. **Bulk Transfer External Files to Secured Shared Drives**:
+   - Move exposed files into Shared Drives where external sharing restrictions are strictly enforced by policy.
+
+#### **Phase 4: Prevention & Guardrails (Proactive Governance)**
+1. **Trust Rules / Drive Sharing Policy**:
+   - **Admin Console $\rightarrow$ Apps $\rightarrow$ Google Workspace $\rightarrow$ Drive and Docs $\rightarrow$ Sharing settings**.
+   - Disable **"Public on the web"** and restrict external sharing exclusively to **Allowlisted Domains**.
+   - Implement **Trust Rules** to grant granular sharing permissions per OU/Group.
+2. **Data Loss Prevention (DLP) Policies**:
+   - Configure DLP rules to scan Drive files for sensitive detectors (SSNs, API keys, credit cards) and automatically block external sharing attempt in real-time.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why is GAM preferred over the Security Investigation Tool (SIT) when remediating external exposure across millions of files?"*
+* **Senior Engineer Answer**: The Security Investigation Tool UI is throttled and capped on batch action limits during large-scale revocations. GAM executes directly against the Google Drive API, allowing multi-threaded batch operations, automated retry logic, exact CSV filtering, and full audit output for change tracking across millions of files.
+
+---
+
+### Q109: How do you systematically investigate and resolve why outbound emails from your domain are landing in a specific partner's spam folder?
+**Detailed Technical Answer:**
+Diagnosing outbound email deliverability issues requires a systematic 5-step process isolating authentication, reputation, content, and receiver-side security gateway rules.
+
+#### **1. Inspect Message Headers (Fast-Track Diagnostics)**
+Ask the recipient partner to retrieve the raw email headers from their Spam/Junk folder (*Gmail: "Show original"* / *Outlook: "View message details"*):
+- **Authentication-Results**: Verify `spf=pass`, `dkim=pass`, and `dmarc=pass`. If any show `fail` or `neutral`, fix DNS records immediately.
+- **Spam Score Headers**:
+  - **Microsoft 365**: Inspect `X-Forefront-Antispam-Report` for **SCL (Spam Confidence Level)** score ($>4$ = Spam).
+  - **Proofpoint / Mimecast**: Check `X-Proofpoint-Spam-Details` or `X-Spam-Status` for specific rule trigger flags.
+- *Verification*: If authentication passes completely, the cause is content-based filtering or domain reputation.
+
+#### **2. Verify Core Domain Authentication (DNS Records)**
+Run sending domain through diagnostic tools (MXToolbox, Mail-Tester, Google Admin Toolbox):
+- **SPF (Sender Policy Framework)**: Ensure outbound IPs or Google Workspace (`include:_spf.google.com`) are published and DNS lookups do not exceed the 10-lookup limit.
+- **DKIM (DomainKeys Identified Mail)**: Verify selector TXT record (`google._domainkey`) is published and active in Google Admin Console.
+- **DMARC**: Confirm DMARC policy (`v=DMARC1; p=quarantine` or `p=reject`) is published and aligned with SPF/DKIM domains.
+
+#### **3. Check IP & Domain Blacklists (Reputation Audit)**
+- Query sending domain and Google outbound IP ranges against RBLs (Real-time Blackhole Lists) via Spamhaus, Barracuda, and MXToolbox.
+- Monitor **Google Postmaster Tools** to verify Domain Reputation (High/Medium/Low/Bad) and IP Reputation.
+
+#### **4. Audit Email Content & Attachment Triggers**
+- **Links**: Eliminate URL shorteners (e.g., `bit.ly`), unencrypted `http://` links, or links pointing to untrusted/newly-registered domains.
+- **Attachments**: Avoid macro-enabled documents (`.docm`), compressed archives (`.zip`), or executable formats.
+- **Isolation Test**: Send a plain-text email without links or signatures. If it lands in the Inbox, the issue is triggered by template/signature/link elements.
+
+#### **5. Isolate Receiver-Specific Security Gateway Rules**
+- Check if partner uses Secure Email Gateways (SEGs) like Proofpoint, Mimecast, or Barracuda.
+- Have partner IT add sender domain/IP to their **Safe Senders List / Inbound Gateway Allowlist**.
+- Have recipient mark the email as **"Not Spam"** and initiate a bi-directional reply thread to train ML mailbox filters.
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"If SPF, DKIM, and DMARC all return PASS, why would Microsoft 365 or Proofpoint still deliver your email to Spam?"*
+* **Senior Engineer Answer**: Authentication only verifies *who sent the email*; it does not guarantee *content cleanliness*. Security gateways will still mark authenticated email as spam if the domain reputation is low (Google Postmaster Tools), if the email contains blacklisted tracking links/URL shorteners, or if recipient tenant-level transport rules explicitly flag specific keywords or external senders.
+
+---
+
+### Q110: How do you troubleshoot non-receipt of outbound emails by an external partner using Google Workspace investigation tools?
+**Detailed Technical Answer:**
+When an external partner reports non-receipt of an email, follow a systematic 5-step diagnostic workflow integrating Google Workspace enterprise investigation tools:
+
+#### **Step 1: Outbox & Sent Folder Verification**
+- Verify the message left the sender's client (not stuck in Drafts or Outbox).
+- Verify exact recipient email spelling (checking for typos in domain or username).
+
+#### **Step 2: Non-Delivery Notification (NDN / Bounce-Back) Analysis**
+Check sender inbox and spam folder for `Mailer-Daemon` bounce messages:
+- **`550 5.1.1`**: Recipient address does not exist on target domain.
+- **`550 5.7.1`**: Message rejected by recipient's spam/security policy.
+- **`452 4.2.2`**: Recipient mailbox is full over quota.
+- **`421 4.7.0`**: Recipient server rate-limiting or greylisting connection.
+- *If no NDN is received*: The message was accepted by the destination server or dropped in transit.
+
+#### **Step 3: Google Admin Email Log Search (ELS) & Security Investigation Tool**
+- **Email Log Search (ELS)** (*Admin Console $\rightarrow$ Reporting $\rightarrow$ Email Log Search*):
+  - Search by **Sender**, **Recipient**, and **Date Range**.
+  - Check delivery status:
+    - **`250 2.0.0 OK`**: Google successfully handed off the email to the recipient domain's MX server. The issue is downstream on the partner's end.
+    - **Quarantined / Dropped**: Internal Google Workspace routing or compliance rule blocked outbound delivery.
+- **Security Investigation Tool (SIT)** (*Admin Console $\rightarrow$ Security $\rightarrow$ Investigation tool*):
+  - Query **Gmail log events** to trace DLP policy triggers, outbound gateway rules, or administrative holds.
+
+#### **Step 4: Recipient Search & Corporate Security Gateway Isolation**
+- Ask recipient to perform a broad search (`in:anywhere` / `in:spam` / `in:trash`) using sender email and subject line.
+- Check enterprise Secure Email Gateways (SEGs) like Proofpoint, Mimecast, or Microsoft Defender for Quarantine Digest holds.
+- Request recipient IT to search inbound gateway logs using sender email, timestamp, and Google egress IP.
+
+#### **Step 5: Investigation & Diagnostic Tools Suite**
+Utilize the following specialized diagnostic tools to verify domain health:
+
+| Diagnostic Tool | Purpose & Usage |
+| :--- | :--- |
+| **Google Admin Toolbox CheckMX** (`toolbox.googleapps.com/apps/checkmx/`) | Validates MX records, SPF syntax, DKIM selector presence, and DMARC alignment. |
+| **Google Admin Toolbox Messageheader Analyzer** (`toolbox.googleapps.com/apps/messageheader/`) | Parses raw RFC 822 headers to identify hop-by-hop latency and authentication failures. |
+| **Google Postmaster Tools** (`postmaster.google.com`) | Monitors domain reputation, IP reputation, SPF/DKIM success rates, and spam rate metrics. |
+| **MXToolbox / Spamhaus** | Audits domain and outbound IP ranges against global Real-time Blackhole Lists (RBLs). |
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"What does ELS returning '250 2.0.0 OK' mean during an email non-receipt investigation?"*
+* **Senior Engineer Answer**: `250 2.0.0 OK` is the standard SMTP acknowledgement code confirming that Google's outbound servers successfully handed off the email payload to the destination domain's MX server, and the recipient server accepted full responsibility for the message. This conclusively shifts the investigation to the recipient's internal email gateway, spam filter, or user mailbox settings.
+
+
+
+
+
