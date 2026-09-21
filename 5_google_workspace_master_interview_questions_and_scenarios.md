@@ -1685,6 +1685,58 @@ Utilize the following specialized diagnostic tools to verify domain health:
 * **Interviewer Follow-up Question**: *"What does ELS returning '250 2.0.0 OK' mean during an email non-receipt investigation?"*
 * **Senior Engineer Answer**: `250 2.0.0 OK` is the standard SMTP acknowledgement code confirming that Google's outbound servers successfully handed off the email payload to the destination domain's MX server, and the recipient server accepted full responsibility for the message. This conclusively shifts the investigation to the recipient's internal email gateway, spam filter, or user mailbox settings.
 
+---
+
+### Q111: How do you systematically investigate and resolve why inbound emails from a specific partner domain are landing in your users' Gmail Spam folders?
+**Detailed Technical Answer:**
+When legitimate emails from a business partner land in your organization's Gmail Spam folder or quarantine, follow a 4-stage investigation and remediation workflow:
+
+#### **Stage 1: Header Inspection & ELS Analysis (Diagnosis)**
+1. **Gmail Spam Banner Inspection**:
+   - Open the affected email in Gmail and inspect the yellow banner explanation:
+     - *"We couldn't verify that this message actually came from partner.com"* $\rightarrow$ **Authentication Failure**.
+     - *"It contains content that's typically used in spam messages"* $\rightarrow$ **Content / AI Spam Filter Trigger**.
+     - *"Similar messages were used to steal personal information"* $\rightarrow$ **Phishing / Spoofing Guardrail Trigger**.
+2. **Inspect Raw Message Headers (`Show Original`)**:
+   - Check `Authentication-Results`:
+     - **SPF Failure**: Partner added new outbound mail servers or sending platforms (Salesforce, Marketo) without updating their SPF record.
+     - **DKIM Failure**: Partner's public key TXT record is missing/broken or signing headers were modified in transit.
+     - **DMARC Failure**: `From:` header domain does not match SPF `Return-Path` or DKIM `d=` domain.
+3. **Email Log Search (ELS)** (*Admin Console $\rightarrow$ Reporting $\rightarrow$ Email Log Search*):
+   - Query by Partner Sender Address. Verify whether Google Workspace marked the message as **Spam** or **Quarantined** by safety settings.
+
+#### **Stage 2: Evaluate Third-Party Inbound Gateway Architecture**
+- If your enterprise uses an Inbound Security Gateway (Proofpoint, Mimecast, Barracuda):
+  - Ensure gateway IP addresses are configured under **Admin Console $\rightarrow$ Apps $\rightarrow$ Google Workspace $\rightarrow$ Gmail $\rightarrow$ Inbound Gateway**.
+  - **Critical Check**: Verify gateway IPs are **NOT** placed in *Email Allowlist*. Placing a gateway IP in *Email Allowlist* breaks Gmail's `X-Forwarded-For` header parsing, causing Gmail to evaluate SPF against the gateway IP rather than the partner's IP.
+
+#### **Stage 3: Enterprise Remediation Options**
+
+1. **Option A: Partner-Side DNS Fix (Best Practice / Long-Term)**
+   - Advise partner IT to correct their DNS records (updating SPF `include:` statements, enabling DKIM signing, aligning DMARC) so inbound mail passes Google authentication natively.
+
+2. **Option B: Admin Approved Senders List with Mandatory Authentication (Recommended Short-Term)**
+   - Go to **Admin Console $\rightarrow$ Apps $\rightarrow$ Google Workspace $\rightarrow$ Gmail $\rightarrow$ Spam, phishing, and malware $\rightarrow$ Spam**.
+   - Create/Edit a Spam setting rule:
+     - Add `partner.com` to an **Approved Senders List**.
+     - Select **"Bypass spam filters for messages from addresses or domains in these lists"**.
+     - **MANDATORY**: Check **"Require sender authentication"** (Enforces SPF or DKIM validation).
+
+3. **Option C: Compliance Routing Rule**
+   - Configure a Gmail Routing rule (*Admin Console $\rightarrow$ Gmail $\rightarrow$ Routing*):
+     - Filter: `Envelope sender` contains `@partner.com` AND `Spam header` indicates spam.
+     - Action: Modify message $\rightarrow$ **Bypass spam filter for this message**.
+
+4. **Option D: User Machine-Learning Training**
+   - Have affected users open the spam message and click **"Report not spam"**. This trains Google's adaptive spam filters for your tenant over time.
+
+---
+
+**Follow-up Question & Answer:**
+* **Interviewer Follow-up Question**: *"Why is checking 'Require sender authentication' mandatory when adding a partner domain to an Approved Senders list to bypass spam filters?"*
+* **Senior Engineer Answer**: If you bypass spam filters for `@partner.com` without requiring authentication, any attacker on the internet can spoof the header `From: CEO@partner.com` and deliver malicious phishing or malware emails directly into your users' inboxes without passing Gmail's security inspection. Requiring SPF/DKIM authentication ensures only genuine, cryptographically-verified emails from partner.com bypass the spam filter.
+
+
 
 
 
