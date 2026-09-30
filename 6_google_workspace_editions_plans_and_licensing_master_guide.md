@@ -14,6 +14,7 @@
 9. [Google Drive File, Folder & Storage Limitations](#9-google-drive-file-folder--storage-limitations)
 10. [Gmail & Drive Restoration Time Periods & Retention](#10-gmail--drive-restoration-time-periods--retention)
 11. [L3 Admin Troubleshooting & Service Account Quota Scenarios](#11-l3-admin-troubleshooting--service-account-quota-scenarios)
+12. [Official Google Support & Developer Documentation Index](#12--official-google-support--developer-documentation-index)
 
 ---
 
@@ -185,4 +186,45 @@ Gemini AI can be added to any Google Workspace Business, Enterprise, Education, 
 | **Cannot create subfolders inside deep directory structure** | Nesting depth limit of 100 folders reached. | Restructure the directory hierarchy or move subfolders up to a shallower level. |
 
 ---
+
+## 12. 📚 Official Google Support & Developer Documentation Index
+
+Below is the curated index of official Google Workspace Admin Help Center, Cloud Security, and Google Developer documentation links corresponding to all sections in this master guide:
+
+### 🏢 Editions & Plan Architecture
+* **Compare Workspace Editions:** [support.google.com/a/answer/6043773](https://support.google.com/a/answer/6043773)
+* **Business Editions Guide:** [support.google.com/a/answer/9982218](https://support.google.com/a/answer/9982218)
+* **Enterprise Editions Overview:** [support.google.com/a/answer/9283451](https://support.google.com/a/answer/9283451)
+* **Frontline Worker Editions:** [support.google.com/a/answer/10356997](https://support.google.com/a/answer/10356997)
+* **Google Workspace for Education:** [support.google.com/a/answer/10383344](https://support.google.com/a/answer/10383344)
+* **Workspace for Nonprofits Eligibility:** [support.google.com/nonprofits/answer/3391916](https://support.google.com/nonprofits/answer/3391916)
+* **Workspace Essentials & Enterprise Essentials:** [support.google.com/a/answer/9932410](https://support.google.com/a/answer/9932410)
+
+### 📊 Storage, Upload & Shared Drive Limits
+* **Pooled Storage Overview & Admin Rules:** [support.google.com/a/answer/9214707](https://support.google.com/a/answer/9214707)
+* **Google Drive File & Folder Limits:** [support.google.com/a/answer/14231871](https://support.google.com/a/answer/14231871)
+* **Shared Drive Limits & Capacity (500k Items):** [support.google.com/a/answer/7338880](https://support.google.com/a/answer/7338880)
+* **Drive Upload & Daily 750 GB Limits:** [support.google.com/a/answer/2490100](https://support.google.com/a/answer/2490100)
+
+### ⏱️ Data Restoration, Trash & Retention
+* **Restore Deleted Drive Files (25-Day Window):** [support.google.com/a/answer/7370133](https://support.google.com/a/answer/7370133)
+* **Restore Permanently Deleted Gmail Messages:** [support.google.com/a/answer/112445](https://support.google.com/a/answer/112445)
+* **Restore Deleted User Account (20-Day Window):** [support.google.com/a/answer/1397578](https://support.google.com/a/answer/1397578)
+* **Google Vault Retention Rules & Matters:** [support.google.com/vault/answer/2465203](https://support.google.com/vault/answer/2465203)
+* **Empty Trash & Delete Items Permanently:** [support.google.com/drive/answer/2375102](https://support.google.com/drive/answer/2375102)
+
+### 🔐 Security, Compliance & Gemini AI
+* **Context-Aware Access (Zero Trust):** [support.google.com/a/answer/9262014](https://support.google.com/a/answer/9262014)
+* **Data Loss Prevention (DLP) for Drive & Gmail:** [support.google.com/a/answer/7185340](https://support.google.com/a/answer/7185340)
+* **Client-Side Encryption (CSE) Setup:** [support.google.com/a/answer/10741897](https://support.google.com/a/answer/10741897)
+* **Security Command Center & Investigation Tool:** [support.google.com/a/answer/7575955](https://support.google.com/a/answer/7575955)
+* **Gemini for Google Workspace Admin Guide:** [support.google.com/a/answer/13623623](https://support.google.com/a/answer/13623623)
+
+### 🤖 Developer APIs & Service Accounts
+* **Google Drive API Limits & Quotas:** [developers.google.com/drive/api/guides/limits](https://developers.google.com/drive/api/guides/limits)
+* **Enable Shared Drive Support in APIs (`supportsAllDrives`):** [developers.google.com/drive/api/guides/enable-shareddrives](https://developers.google.com/drive/api/guides/enable-shareddrives)
+* **Domain-Wide Delegation (DWD) Setup:** [support.google.com/a/answer/162106](https://support.google.com/a/answer/162106)
+
+---
 *Created as part of the Google Workspace Master Administration Documentation Series.*
+
