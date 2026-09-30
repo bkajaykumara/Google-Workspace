@@ -10,6 +10,8 @@
 5. [Nonprofits Editions](#5-nonprofits-editions)
 6. [Essentials & Individual Editions (No Mail / Single User)](#6-essentials--individual-editions-no-mail--single-user)
 7. [Gemini for Google Workspace Add-Ons](#7-gemini-for-google-workspace-add-ons)
+   * [7.1 Government & Public Sector Tiers (Assured Controls)](#71--government--public-sector-tiers-assured-controls)
+   * [7.2 Cloud Identity Standalone Licenses (Free & Premium)](#72--cloud-identity-standalone-licenses-identity--mdm-without-maildrive)
 8. [Security & Compliance Matrix Across Editions](#8-security--compliance-matrix-across-editions)
 9. [Google Drive File, Folder & Storage Limitations](#9-google-drive-file-folder--storage-limitations)
 10. [Gmail & Drive Restoration Time Periods & Retention](#10-gmail--drive-restoration-time-periods--retention)
@@ -61,16 +63,22 @@ Enterprise editions have **no user count minimum or maximum** and unlock enterpr
 
 ## 3. 🏬 Frontline Editions (Deskless & Shift Workers)
 
-Designed for non-desk, shift, or customer-facing operational employees requiring mobile-first collaboration.
+Designed for non-desk, shift, or customer-facing operational employees requiring mobile-first collaboration and enterprise security.
 
-| Feature | Frontline Starter | Frontline Standard |
-| :--- | :--- | :--- |
-| **Target Audience** | Frontline / Mobile Workers | Frontline / Mobile Workers |
-| **Storage per User** | **5 GB** Pooled Storage | **5 GB** Pooled Storage |
-| **Shared Drives Access** | Read/View only | ✅ Full creation & edit access |
-| **Google Vault** | ❌ No | ✅ **Included** |
-| **Endpoint Management** | Basic Mobile | **Advanced MDM** |
-| **DLP & Security** | Basic security | ✅ Drive & Gmail DLP, Context-Aware Access |
+| Feature / Capability | Frontline Starter | Frontline Standard | Frontline Plus |
+| :--- | :--- | :--- | :--- |
+| **Target Audience** | Frontline / Mobile Workers | Frontline / Mobile Workers | Frontline Workers with AI & Security needs |
+| **Storage per User** | **5 GB** Pooled Storage | **5 GB** Pooled Storage | **5 GB** Pooled Storage |
+| **Shared Drives Access** | Read/View only | ✅ Full creation & edit access | ✅ Full creation & edit access |
+| **Google Vault** | ❌ No | ✅ **Included** | ✅ **Included** |
+| **Endpoint Management** | Basic Mobile | **Advanced MDM** | **Advanced MDM** |
+| **DLP & Security** | Basic security | ✅ Drive & Gmail DLP, Context-Aware Access | ✅ Drive & Gmail DLP, Context-Aware Access |
+| **Gemini AI Integration** | ❌ Add-on required | ❌ Add-on required | ✅ **Built-in Gemini AI** (Gmail, Docs, Meet) |
+| **Client-Side Encryption (CSE)** | ❌ No | ❌ No | ✅ **Included** |
+| **Hosted S/MIME** | ❌ No | ❌ No | ✅ **Included** |
+| **AI Classification in Drive** | ❌ No | ❌ No | ✅ **Included** |
+| **Data Regions (Geo-Location)** | ❌ No | ❌ No | ✅ **Primary Data Regions** |
+| **Procurement Channel** | Self-Service / Reseller | Self-Service / Reseller | **Google Sales-Assisted Only** |
 
 ---
 
@@ -127,20 +135,48 @@ Gemini AI can be added to any Google Workspace Business, Enterprise, Education, 
 
 ---
 
+## 7.1 🏛️ Government & Public Sector Tiers (Assured Controls)
+
+Google Workspace provides specialized compliance tiers for government agencies, defense contractors, and regulated public sector organizations.
+
+| Edition / Add-On | Target Compliance | Key Features & Requirements |
+| :--- | :--- | :--- |
+| **Workspace for Government (Enterprise Plus)** | FedRAMP High, CJIS, IL4 / DoD | • Full Enterprise Plus feature set<br>• Geographic data residency (US Data Regions)<br>• Google Support personnel access restricted to US Persons |
+| **Assured Controls Add-On** | Statutory Compliance & Sovereignty | • Explicit restriction of Google personnel access (Access Management)<br>• Real-time log tracking of Google Support access (Access Transparency)<br>• Geographically isolated data storage & processing |
+
+---
+
+## 7.2 🆔 Cloud Identity Standalone Licenses (Identity & MDM without Mail/Drive)
+
+For users who only require authentication (SSO/SAML), directory access, or mobile device management (MDM) without full Google Workspace app access (Gmail/Drive).
+
+| Feature / License | Cloud Identity Free | Cloud Identity Premium |
+| :--- | :--- | :--- |
+| **Target Use Case** | Basic SSO, Directory Users, Contractor Access | Advanced Endpoint Management (MDM) for non-Workspace users |
+| **2-Step Verification & SSO** | ✅ Yes | ✅ Yes |
+| **Basic Mobile Management** | ✅ Yes | ✅ Yes |
+| **Advanced Mobile Management (MDM)** | ❌ No | ✅ **Included** (Device Wipe, iOS ADE, Windows Autopilot) |
+| **Context-Aware Access (CAA)** | ❌ No | ✅ **Included** |
+| **Security Command Center** | ❌ No | ✅ **Included** |
+| **AppSheet Core** | ❌ No | ✅ **Included** |
+
+---
+
 ## 8. 🔐 Security & Compliance Matrix Across Editions
 
-| Security Feature | Business Starter | Business Standard | Business Plus | Enterprise Standard | Enterprise Plus |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **2-Step Verification Enforcement** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Basic Mobile Management** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Advanced Mobile Management (MDM)** | ❌ | ❌ | ✅ | ✅ | ✅ |
-| **Google Vault (Archiving/E-Discovery)**| ❌ | ❌ | ✅ | ✅ | ✅ |
-| **DLP (Data Loss Prevention)** | ❌ | ❌ | ✅ | ✅ | ✅ |
-| **Security Command Center & Investigation** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Context-Aware Access (Zero Trust)** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Client-Side Encryption (CSE)** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Hosted S/MIME Email Encryption** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Data Regions (Geographic Location)** | ❌ | ❌ | ❌ | Primary | Primary + Secondary |
+| Security Feature | Business Starter | Business Standard | Business Plus | Frontline Plus | Enterprise Standard | Enterprise Plus |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **2-Step Verification Enforcement** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Basic Mobile Management** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Advanced Mobile Management (MDM)** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Google Vault (Archiving/E-Discovery)**| ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **DLP (Data Loss Prevention)** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Security Command Center & Investigation** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Context-Aware Access (Zero Trust)** | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **Client-Side Encryption (CSE)** | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **Hosted S/MIME Email Encryption** | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **Built-in Gemini AI (Docs/Mail/Meet)** | ❌ | ❌ | ❌ | ✅ | ❌ | Add-on |
+| **Data Regions (Geographic Location)** | ❌ | ❌ | ❌ | Primary | Primary | Primary + Secondary |
 
 ---
 
