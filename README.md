@@ -1,6 +1,6 @@
 # Google Workspace Administrator Engineering & Interview Master Guide
 
-Welcome to the Google Workspace Administrator Master Reference. This repository has been consolidated into **4 Domain Engineering Master Guides** and **1 Master Interview Questions & Scenario Handbook**.
+Welcome to the Google Workspace Administrator Master Reference. This repository has been consolidated into **5 Domain Engineering Master Guides** and **1 Master Interview Questions & Scenario Handbook**.
 
 ## 📚 Master Files Index
 
@@ -18,5 +18,8 @@ Welcome to the Google Workspace Administrator Master Reference. This repository 
 
 5. 🎯 **[5_google_workspace_master_interview_questions_and_scenarios.md](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/5_google_workspace_master_interview_questions_and_scenarios.md)**
    *The single master interview questions file containing 100% of all interview questions, notes, scenarios, Q&As, and evaluation rubrics.*
+
+6. 🌐 **[6_google_workspace_editions_plans_and_licensing_master_guide.md](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/6_google_workspace_editions_plans_and_licensing_master_guide.md)**
+   *Consolidated reference covering Business, Enterprise, Frontline, Education, Nonprofits, Essentials, Gemini AI Add-ons, Drive storage/upload limits, retention timeframes, and L3 admin troubleshooting.*
 
 For the complete guide overview and core competency checklist, see **[index.md](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/index.md)**.

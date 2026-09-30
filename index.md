@@ -47,6 +47,9 @@ Welcome to the consolidated Google Workspace Administrator Engineering & Intervi
 ### 5. 🎯 [Module 5: Google Workspace Master Interview Questions & Scenario Handbook](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/5_google_workspace_master_interview_questions_and_scenarios.md)
 *The single definitive master interview preparation handbook containing all 42 SSO/SAML/OAuth/OIDC/Netskope notes Q&As, 95 platform owner questions, certification exam scenario questions, migration Q&As, and L3 incident troubleshooting playbooks.*
 
+### 6. 🌐 [Module 6: Google Workspace Editions, Plans, Licensing & Storage Limits Master Guide](file:///c:/Users/ajayk/OneDrive/Desktop/Google%20Workspace%20adminstration/6_google_workspace_editions_plans_and_licensing_master_guide.md)
+*Consolidated technical reference covering Business, Enterprise, Frontline, Education, Nonprofits, Essentials, Gemini AI Add-ons, Drive storage/upload limits, retention timeframes, and L3 admin troubleshooting.*
+
 ---
 
 ## 🎯 Core Competency Checklist
